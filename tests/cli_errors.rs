@@ -114,6 +114,15 @@ fn ts_alias_binary_auto_enables_strict() {
     cmd.args(["-u"]).write_stdin("x\n").assert().failure(); // Strict rejects -u
 }
 
+#[test]
+fn rusty_ts_binary_name_does_not_trigger_strict() {
+    // Negative control for argv[0] auto-detect: the `rusty-ts` binary name
+    // must NOT auto-enable Strict mode (only `ts` does). Default mode allows -u.
+    let mut cmd = Command::cargo_bin("rusty-ts").unwrap();
+    common::fixture_envs(&mut cmd);
+    cmd.args(["-u"]).write_stdin("x\n").assert().success();
+}
+
 // ─────────────────── US10 — Plug-and-play ───────────────────────
 
 #[test]

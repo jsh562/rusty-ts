@@ -48,3 +48,22 @@ fn committed_compatibility_matrix_matches_cli_definition() {
          to regenerate, then commit the diff.",
     );
 }
+
+/// FR-015 / SC-001 / T112: the README MUST contain the TZ-pinning disclosure
+/// verbatim so consumers can trust that "byte-level fidelity is verified
+/// under TZ=UTC" is a testable contract, not implementation lore.
+#[test]
+fn readme_contains_tz_pinning_disclosure_verbatim() {
+    let readme = fs::read_to_string("README.md").expect("read README");
+    let disclosure = "Byte-level fidelity is verified by snapshot tests against captured \
+                      moreutils-`ts` output under a pinned environment: `TZ=UTC` and \
+                      `LC_ALL=C.UTF-8`.";
+    let normalized_readme = readme.replace("\r\n", "\n");
+    let normalized_disclosure = disclosure.replace("\r\n", "\n");
+    assert!(
+        normalized_readme.contains(&normalized_disclosure),
+        "README MUST contain the FR-015 TZ-pinning disclosure verbatim. \
+         Expected substring:\n{normalized_disclosure}\n\
+         README content:\n{normalized_readme}",
+    );
+}

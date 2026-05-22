@@ -97,7 +97,13 @@ pub enum ElapsedAnchor {
 #[derive(Debug, Clone, Default)]
 pub struct TimestamperBuilder {
     format: Format,
-    timezone: Option<TimezoneSource>,
+    /// Mirrors the CLI `-u` / `--utc` flag.
+    utc_requested: bool,
+    /// Mirrors the CLI `--tz=<IANA>` flag.
+    named_tz: Option<String>,
+    /// Direct enum override; lower-level escape hatch. When set, supersedes
+    /// `utc_requested` and `named_tz` (advanced consumers only).
+    timezone_override: Option<TimezoneSource>,
     compat: CompatibilityMode,
     elapsed: ElapsedAnchor,
 }
@@ -115,10 +121,32 @@ impl TimestamperBuilder {
         self
     }
 
-    /// Set the timezone source. `None` defaults to local time per FR-017.
+    /// Request UTC rendering (mirrors the CLI `-u` / `--utc` flag).
+    /// Conflicts with `tz_name`; combined use causes `build()` to return
+    /// [`Error::InvalidUtcWithNamedTz`] per FR-020.
+    #[must_use]
+    pub fn utc(mut self, utc: bool) -> Self {
+        self.utc_requested = utc;
+        self
+    }
+
+    /// Request rendering in a named IANA timezone (mirrors the CLI
+    /// `--tz=<IANA>` flag). Conflicts with `utc(true)`. The name is
+    /// resolved at `build()` time; an unrecognised name produces
+    /// [`Error::InvalidIanaName`].
+    #[must_use]
+    pub fn tz_name(mut self, name: impl Into<String>) -> Self {
+        self.named_tz = Some(name.into());
+        self
+    }
+
+    /// Low-level escape hatch: set the timezone source directly. When set,
+    /// overrides `utc()` and `tz_name()` configuration. Most callers should
+    /// prefer the structured `utc()` / `tz_name()` methods, which mirror the
+    /// CLI flag surface and provide the FR-020 mutex enforcement.
     #[must_use]
     pub fn timezone(mut self, tz: TimezoneSource) -> Self {
-        self.timezone = Some(tz);
+        self.timezone_override = Some(tz);
         self
     }
 
@@ -138,16 +166,36 @@ impl TimestamperBuilder {
 
     /// Finalize the builder. Returns a configured [`Timestamper`] or an
     /// [`Error`] if the configuration is invalid.
+    ///
+    /// Validation:
+    /// - `utc(true)` + `tz_name(...)` together → [`Error::InvalidUtcWithNamedTz`]
+    ///   (library-layer mirror of FR-020).
+    /// - `tz_name("...")` with unrecognised IANA name → [`Error::InvalidIanaName`].
+    /// - `timezone(...)` low-level override bypasses the above and uses
+    ///   whatever variant was supplied directly.
     pub fn build(self) -> Result<Timestamper, Error> {
-        // No mutex check needed at the library layer for `-u` vs `--tz`
-        // because the `TimezoneSource` enum already encodes the choice — a
-        // caller cannot construct both. The library mirrors FR-020 by
-        // returning `InvalidUtcWithNamedTz` only when the CLI parser layer
-        // attempts to call `TimezoneSource::named` while `-u` is set, which
-        // is enforced in `cli::Cli::validate` before this builder is reached.
+        // FR-020 library-layer mirror: utc + named tz is invalid.
+        if self.utc_requested {
+            if let Some(name) = &self.named_tz {
+                return Err(Error::InvalidUtcWithNamedTz { tz: name.clone() });
+            }
+        }
+
+        // Resolve the timezone source from the configured fields. The
+        // low-level `timezone_override` wins if supplied.
+        let timezone = if let Some(direct) = self.timezone_override {
+            direct
+        } else if self.utc_requested {
+            TimezoneSource::Utc
+        } else if let Some(name) = self.named_tz {
+            TimezoneSource::named(&name)?
+        } else {
+            TimezoneSource::Local
+        };
+
         Ok(Timestamper {
             format: self.format,
-            timezone: self.timezone.unwrap_or(TimezoneSource::Local),
+            timezone,
             compat: self.compat,
             elapsed: self.elapsed,
         })

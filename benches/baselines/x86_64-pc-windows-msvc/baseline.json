@@ -1,0 +1,18 @@
+{
+  "captured": "2026-05-22T11:35:00Z",
+  "host": "x86_64-pc-windows-msvc Windows 10 dev workstation (representative)",
+  "rustc": "1.92.0",
+  "criterion": "0.5.1",
+  "notes": "Initial baseline captured on Windows host. T122 calls for Linux x86_64 ubuntu-latest reference; replace this file when that capture lands. perf-gate compares against this baseline at ±15% tolerance (default throughput), ±20% (-r), +10% (cold-start).",
+  "benches": {
+    "format_default_one_call_ns": 19.6,
+    "format_with_iso_one_call_ns": 39,
+    "format_with_fractional_one_call_ns": 90,
+    "timezone_named_resolution_ns": 19.6,
+    "relative_default_subset_one_line_us": 1.05,
+    "relative_strict_full_set_one_line_us": 1.63,
+    "throughput_default_format_100x80_MiBps": 192,
+    "throughput_default_format_1000x80_MiBps": 193,
+    "throughput_default_format_10000x80_MiBps": 182
+  }
+}
