@@ -482,16 +482,25 @@ pub fn run() -> std::process::ExitCode {
         argv0_basename.as_deref(),
     );
 
-    // In Strict mode, reject Rusty-only flags (FR-026).
-    if compat == CompatibilityMode::Strict
-        && (cli.utc || cli.tz.is_some() || cli.subcommand.is_some())
-    {
-        let _ = writeln!(
-            stderr(),
-            "rusty-ts: unknown flag in --strict mode (rejecting Rusty-only extensions; \
-             see README Compatibility Matrix)"
-        );
-        return std::process::ExitCode::from(2);
+    // In Strict mode, reject Rusty-only flags with the exact moreutils
+    // stderr format (FR-026): `Unknown option: <flag>\nusage: ts [-r] [format]\n`.
+    // Verified byte-equal against captured moreutils output in
+    // tests/compat_strict.rs.
+    if compat == CompatibilityMode::Strict {
+        let bad_flag: Option<&str> = if cli.utc {
+            Some("u")
+        } else if cli.tz.is_some() {
+            Some("tz")
+        } else if cli.subcommand.is_some() {
+            Some("completions")
+        } else {
+            None
+        };
+        if let Some(flag) = bad_flag {
+            let _ = writeln!(stderr(), "Unknown option: {flag}");
+            let _ = writeln!(stderr(), "usage: ts [-r] [format]");
+            return std::process::ExitCode::from(2);
+        }
     }
 
     // Defense-in-depth: validate -u + --tz mutex (clap also enforces this).

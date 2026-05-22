@@ -1,0 +1,2 @@
+Unknown option: u
+usage: ts [-r] [format]

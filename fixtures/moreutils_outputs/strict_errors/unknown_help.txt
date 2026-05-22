@@ -1,0 +1,2 @@
+Unknown option: help
+usage: ts [-r] [format]

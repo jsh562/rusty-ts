@@ -1,0 +1,3 @@
+ascii
+Ãÿş binary
+ascii2
