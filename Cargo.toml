@@ -1,0 +1,77 @@
+[package]
+name = "rusty-ts"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["Rusty Portfolio <noreply@example.invalid>"]
+license = "MIT OR Apache-2.0"
+description = "Prefix each line of stdin with a timestamp — a Rust port of moreutils `ts` with strict-compat mode, IANA timezone control, and a reusable byte-typed library API."
+repository = "https://github.com/REPLACE_OWNER/rusty-ts"
+homepage = "https://github.com/REPLACE_OWNER/rusty-ts"
+documentation = "https://docs.rs/rusty-ts"
+readme = "README.md"
+keywords = ["ts", "moreutils", "timestamp", "log", "cli"]
+categories = ["command-line-utilities", "date-and-time"]
+
+[features]
+default = ["cli"]
+# `cli` gates the CLI-only dependencies (clap, clap_complete, anyhow) so library
+# consumers can depend on rusty-ts with `default-features = false` without
+# pulling in the binary's argument-parsing surface.
+cli = ["dep:clap", "dep:clap_complete", "dep:anyhow"]
+# `ts-alias` adds a second binary entry named `ts` alongside `rusty-ts`. Both
+# binaries share the same source — they differ only in installed name. argv[0]
+# auto-detect (FR-023) routes `ts` invocations into Strict mode automatically.
+ts-alias = ["cli"]
+# `bench` enables criterion benches in `benches/`. Off by default to keep
+# `cargo install` minimal.
+bench = ["dep:criterion"]
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+chrono-tz = "0.10"
+regex = "1"
+thiserror = "2"
+# CLI-only deps gated behind the `cli` feature.
+clap = { version = "4", features = ["derive", "env"], optional = true }
+clap_complete = { version = "4", optional = true }
+anyhow = { version = "1", optional = true }
+# Bench-only dep gated behind the `bench` feature.
+criterion = { version = "0.5", optional = true }
+
+[dev-dependencies]
+insta = { version = "1", features = ["yaml"] }
+assert_cmd = "2"
+predicates = "3"
+static_assertions = "1"
+
+[[bin]]
+name = "rusty-ts"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[[bin]]
+name = "ts"
+path = "src/bin/ts.rs"
+required-features = ["ts-alias"]
+
+[[bench]]
+name = "throughput"
+harness = false
+required-features = ["bench"]
+
+[package.metadata.binstall]
+# cargo-binstall asset URL pattern. Filled in by the release pipeline (E003 or
+# the inline release.yml on the pragmatic path) so `cargo binstall rusty-ts`
+# resolves to the per-target archive uploaded to GitHub Releases.
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-v{ version }-{ target }{ archive-suffix }"
+bin-dir = "{ name }-v{ version }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
