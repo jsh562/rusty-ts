@@ -1,0 +1,26 @@
+{
+  "comment": "Sidecar metadata for the default-format moreutils ts captures. The captured_at_iso field is the UTC instant moreutils ts emitted into the prefix — feed it to rusty-ts via RUSTY_TS_TEST_FIXED_CLOCK to reproduce byte-equal output.",
+  "moreutils_source": "https://raw.githubusercontent.com/madx/moreutils/master/ts (fetched 2026-05-22)",
+  "env": {
+    "TZ": "UTC",
+    "LC_ALL": "C.UTF-8"
+  },
+  "fixtures": {
+    "three_lines": {
+      "input": "fixtures/inputs/default/three_lines.txt",
+      "moreutils_output": "fixtures/moreutils_outputs/default/three_lines.txt",
+      "captured_at_iso": "2026-05-22T20:05:37Z"
+    },
+    "single_line": {
+      "input": "fixtures/inputs/default/single_line.txt",
+      "moreutils_output": "fixtures/moreutils_outputs/default/single_line.txt",
+      "captured_at_iso": "2026-05-22T20:05:37Z"
+    },
+    "empty": {
+      "input": "fixtures/inputs/default/empty.txt",
+      "moreutils_output": "fixtures/moreutils_outputs/default/empty.txt",
+      "captured_at_iso": null,
+      "note": "Empty input produces empty output; no timestamp needed."
+    }
+  }
+}

@@ -86,7 +86,7 @@ pub fn run_prefix<R: BufRead, W: Write>(
 
                 if let Err(err) = writer
                     .write_all(prefix.as_bytes())
-                    .and_then(|_| writer.write_all(b"  "))
+                    .and_then(|_| writer.write_all(b" "))
                     .and_then(|_| writer.write_all(&line))
                     .and_then(|_| writer.flush())
                 {
@@ -188,7 +188,7 @@ mod tests {
         let mut out = Vec::new();
         run_prefix(Cursor::new("hello\nworld\n"), &mut out, &cfg).expect("ok");
         let s = String::from_utf8(out).expect("utf-8");
-        assert_eq!(s, "May 22 14:30:45  hello\nMay 22 14:30:45  world\n");
+        assert_eq!(s, "May 22 14:30:45 hello\nMay 22 14:30:45 world\n");
     }
 
     #[test]
@@ -205,7 +205,7 @@ mod tests {
         run_prefix(Cursor::new("a\n"), &mut out, &cfg).expect("ok");
         let s = String::from_utf8(out).expect("utf-8");
         assert!(
-            s.starts_with("00:00:00  "),
+            s.starts_with("00:00:00 "),
             "expected elapsed-zero prefix; got {s:?}",
         );
     }
@@ -238,7 +238,7 @@ mod tests {
         let mut out = Vec::new();
         run_prefix(Cursor::new("incomplete"), &mut out, &cfg).expect("ok");
         let s = String::from_utf8(out).expect("utf-8");
-        assert_eq!(s, "May 22 14:30:45  incomplete");
+        assert_eq!(s, "May 22 14:30:45 incomplete");
         assert!(!s.ends_with('\n'));
     }
 

@@ -276,7 +276,7 @@ impl TimestamperBuilder {
 ///     .prefix_lines(input)
 ///     .collect::<Result<_, _>>()
 ///     .unwrap();
-/// assert!(chunks[0].ends_with(b"  hello\n"));
+/// assert!(chunks[0].ends_with(b" hello\n"));
 /// ```
 #[non_exhaustive]
 #[derive(Debug, Clone)]
@@ -338,7 +338,7 @@ impl Timestamper {
                     elapsed_string(&format_spec, delta)
                 }
             };
-            format!("{prefix}  {line}")
+            format!("{prefix} {line}")
         })
     }
 
@@ -407,7 +407,7 @@ impl<R: std::io::BufRead> Iterator for TimestampingIterator<R> {
 
                 let mut out = Vec::with_capacity(prefix.len() + 2 + line.len());
                 out.extend_from_slice(prefix.as_bytes());
-                out.extend_from_slice(b"  ");
+                out.extend_from_slice(b" ");
                 out.extend_from_slice(&line);
                 Some(Ok(out))
             }
@@ -617,9 +617,9 @@ mod tests {
             .collect::<Result<Vec<_>, _>>()
             .expect("io ok");
         assert_eq!(chunks.len(), 2);
-        // Each chunk ends with "  hello\n" or "  world\n".
-        assert!(chunks[0].ends_with(b"  hello\n"), "got {:?}", chunks[0]);
-        assert!(chunks[1].ends_with(b"  world\n"), "got {:?}", chunks[1]);
+        // Each chunk ends with " hello\n" or " world\n".
+        assert!(chunks[0].ends_with(b" hello\n"), "got {:?}", chunks[0]);
+        assert!(chunks[1].ends_with(b" world\n"), "got {:?}", chunks[1]);
     }
 
     #[test]
@@ -632,8 +632,8 @@ mod tests {
         let lines = vec!["hello\n".to_string(), "world\n".to_string()];
         let out: Vec<String> = ts.prefix_string_lines(lines).collect();
         assert_eq!(out.len(), 2);
-        assert!(out[0].ends_with("  hello\n"));
-        assert!(out[1].ends_with("  world\n"));
+        assert!(out[0].ends_with(" hello\n"));
+        assert!(out[1].ends_with(" world\n"));
     }
 
     /// Send + !Sync compile-time assertion per `plan.md` AD-008.

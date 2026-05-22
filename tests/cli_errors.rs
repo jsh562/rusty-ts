@@ -32,7 +32,7 @@ fn utc_flag_renders_in_utc() {
         .success();
     let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
     // Output begins with HH:MM (UTC) followed by two spaces then "x".
-    let re = regex::Regex::new(r"^\d{2}:\d{2}  x\n$").unwrap();
+    let re = regex::Regex::new(r"^\d{2}:\d{2} x\n$").unwrap();
     assert!(re.is_match(&stdout), "got {stdout:?}");
 }
 
@@ -134,7 +134,7 @@ fn rusty_ts_format_env_var_default_path() {
         .write_stdin("hi\n")
         .assert()
         .success()
-        .stdout(predicate::str::is_match(r"^\[\d{2}:\d{2}:\d{2}\]  hi\n$").unwrap());
+        .stdout(predicate::str::is_match(r"^\[\d{2}:\d{2}:\d{2}\] hi\n$").unwrap());
 }
 
 #[test]
@@ -146,7 +146,7 @@ fn positional_format_beats_env_var() {
         .write_stdin("hi\n")
         .assert()
         .success()
-        .stdout(predicate::str::is_match(r"^\d{2}  hi\n$").unwrap());
+        .stdout(predicate::str::is_match(r"^\d{2} hi\n$").unwrap());
 }
 
 #[test]
@@ -160,7 +160,7 @@ fn rusty_ts_format_empty_treated_as_unset() {
         .success()
         // Empty env var falls through to moreutils default format.
         .stdout(
-            predicate::str::is_match(r"^[A-Z][a-z]{2} [ 0-9]\d \d{2}:\d{2}:\d{2}  hi\n$").unwrap(),
+            predicate::str::is_match(r"^[A-Z][a-z]{2} [ 0-9]\d \d{2}:\d{2}:\d{2} hi\n$").unwrap(),
         );
 }
 
@@ -175,7 +175,7 @@ fn rusty_ts_format_ignored_in_strict() {
         .success()
         // Strict mode ignores RUSTY_TS_FORMAT → falls back to default format.
         .stdout(
-            predicate::str::is_match(r"^[A-Z][a-z]{2} [ 0-9]\d \d{2}:\d{2}:\d{2}  hi\n$").unwrap(),
+            predicate::str::is_match(r"^[A-Z][a-z]{2} [ 0-9]\d \d{2}:\d{2}:\d{2} hi\n$").unwrap(),
         );
 }
 
@@ -200,7 +200,7 @@ fn elapsed_since_start_first_line_is_zero() {
         .assert()
         .success()
         // First line: elapsed since start ≈ 0.
-        .stdout(predicate::str::starts_with("00:00:00  first"));
+        .stdout(predicate::str::starts_with("00:00:00 first"));
 }
 
 // ─────────────────── T052/T053/T054 — deterministic elapsed-mode tests ────
@@ -219,7 +219,7 @@ fn fixed_clock_pins_absolute_timestamp() {
         .write_stdin("alpha\nbeta\n")
         .assert()
         .success()
-        .stdout("2026-05-22 14:30:45  alpha\n2026-05-22 14:30:45  beta\n");
+        .stdout("2026-05-22 14:30:45 alpha\n2026-05-22 14:30:45 beta\n");
 }
 
 #[test]
@@ -236,7 +236,7 @@ fn elapsed_i_with_fixed_clock_shows_zero_delta() {
         .write_stdin("a\nb\nc\n")
         .assert()
         .success()
-        .stdout("00:00:00  a\n00:00:00  b\n00:00:00  c\n");
+        .stdout("00:00:00 a\n00:00:00 b\n00:00:00 c\n");
 }
 
 #[test]
@@ -248,7 +248,7 @@ fn elapsed_s_with_fixed_clock_shows_zero_from_start() {
         .write_stdin("a\nb\n")
         .assert()
         .success()
-        .stdout("00:00:00  a\n00:00:00  b\n");
+        .stdout("00:00:00 a\n00:00:00 b\n");
 }
 
 #[test]
@@ -265,13 +265,13 @@ fn monotonic_flag_combined_with_elapsed_works() {
         .assert()
         .success();
     let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
-    // First line should be "00  a" (elapsed since start ≈ 0).
+    // First line should be "00 a" (elapsed since start ≈ 0).
     assert!(
-        stdout.starts_with("00  a\n"),
+        stdout.starts_with("00 a\n"),
         "expected first line to show 00 elapsed; got {stdout:?}",
     );
     // Both lines render through the same format pipeline; verify shape.
-    let re = regex::Regex::new(r"^\d{2}  a\n\d{2}  b\n$").unwrap();
+    let re = regex::Regex::new(r"^\d{2} a\n\d{2} b\n$").unwrap();
     assert!(
         re.is_match(&stdout),
         "elapsed-mode output shape mismatch: {stdout:?}",

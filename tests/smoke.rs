@@ -12,9 +12,9 @@ use predicates::prelude::*;
 
 /// Default-format moreutils ts output looks like `%b %d %H:%M:%S`:
 /// three-letter month, space, two-digit day, space, HH:MM:SS, then two
-/// spaces, then the payload. We assert the regex shape rather than a literal
+/// space, then the payload. We assert the regex shape rather than a literal
 /// string so the test is deterministic regardless of when it runs.
-const DEFAULT_PREFIX_REGEX: &str = r"^[A-Z][a-z]{2} [ 0-9]\d \d{2}:\d{2}:\d{2}  (.*)$";
+const DEFAULT_PREFIX_REGEX: &str = r"^[A-Z][a-z]{2} [ 0-9]\d \d{2}:\d{2}:\d{2} (.*)$";
 
 #[test]
 fn default_format_two_lines() {
@@ -49,12 +49,12 @@ fn default_format_two_lines() {
 
     // Payload preserved.
     assert!(
-        lines[0].ends_with("  hello"),
+        lines[0].ends_with(" hello"),
         "line 0 payload: {:?}",
         lines[0]
     );
     assert!(
-        lines[1].ends_with("  world"),
+        lines[1].ends_with(" world"),
         "line 1 payload: {:?}",
         lines[1]
     );
@@ -87,7 +87,7 @@ fn partial_final_line_emits_with_prefix() {
         .expect("stdout is utf-8 in this fixture");
 
     assert!(
-        stdout.ends_with("  incomplete"),
+        stdout.ends_with(" incomplete"),
         "expected payload preserved without added newline; got {stdout:?}",
     );
     assert!(

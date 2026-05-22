@@ -105,8 +105,8 @@ fn byte_typed_iterator_preserves_non_utf8_payload() {
         chunks[0],
     );
     assert!(
-        chunks[1].ends_with(b"  world\n"),
-        "second chunk should end with '  world\\n'; got {:?}",
+        chunks[1].ends_with(b" world\n"),
+        "second chunk should end with ' world\\n'; got {:?}",
         chunks[1],
     );
 }
@@ -163,7 +163,7 @@ fn default_format_under_utc_is_deterministic_shape() {
         .collect::<Result<Vec<_>, _>>()
         .expect("io ok");
     let s = std::str::from_utf8(&chunks[0]).expect("utf-8");
-    let re = regex::Regex::new(r"^[A-Z][a-z]{2} [ 0-9]\d \d{2}:\d{2}:\d{2}  abc\n$").unwrap();
+    let re = regex::Regex::new(r"^[A-Z][a-z]{2} [ 0-9]\d \d{2}:\d{2}:\d{2} abc\n$").unwrap();
     assert!(re.is_match(s), "default format shape failed: {s:?}");
 }
 
@@ -180,7 +180,7 @@ fn custom_format_string_is_honored() {
         .collect::<Result<Vec<_>, _>>()
         .expect("io ok");
     let s = std::str::from_utf8(&chunks[0]).expect("utf-8");
-    let re = regex::Regex::new(r"^\[\d{2}:\d{2}\]  abc\n$").unwrap();
+    let re = regex::Regex::new(r"^\[\d{2}:\d{2}\] abc\n$").unwrap();
     assert!(re.is_match(s), "custom format failed: {s:?}");
 }
 
@@ -196,8 +196,8 @@ fn string_lines_adapter_yields_prefixed_strings() {
     let lines = vec!["alpha\n".to_string(), "beta\n".to_string()];
     let out: Vec<String> = ts.prefix_string_lines(lines).collect();
     assert_eq!(out.len(), 2);
-    assert!(out[0].ends_with("  alpha\n"), "got {:?}", out[0]);
-    assert!(out[1].ends_with("  beta\n"), "got {:?}", out[1]);
+    assert!(out[0].ends_with(" alpha\n"), "got {:?}", out[0]);
+    assert!(out[1].ends_with(" beta\n"), "got {:?}", out[1]);
 }
 
 // ─────────── Library / binary parity (T101) ───────────
@@ -247,13 +247,13 @@ fn library_and_binary_produce_structurally_identical_output() {
         "library and binary disagree on line count: lib={lib_lines:?} bin={bin_lines:?}",
     );
 
-    let shape = regex::Regex::new(r"^\[\d{2}:\d{2}\]  (hello|world)\n?$").unwrap();
+    let shape = regex::Regex::new(r"^\[\d{2}:\d{2}\] (hello|world)\n?$").unwrap();
     for (i, (lib, bin)) in lib_lines.iter().zip(bin_lines.iter()).enumerate() {
         assert!(shape.is_match(lib), "lib line {i} shape mismatch: {lib:?}");
         assert!(shape.is_match(bin), "bin line {i} shape mismatch: {bin:?}");
     }
-    assert!(lib_lines[0].ends_with("  hello\n"));
-    assert!(lib_lines[1].ends_with("  world\n"));
-    assert!(bin_lines[0].ends_with("  hello"));
-    assert!(bin_lines[1].ends_with("  world"));
+    assert!(lib_lines[0].ends_with(" hello\n"));
+    assert!(lib_lines[1].ends_with(" world\n"));
+    assert!(bin_lines[0].ends_with(" hello"));
+    assert!(bin_lines[1].ends_with(" world"));
 }
