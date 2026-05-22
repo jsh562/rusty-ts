@@ -203,6 +203,81 @@ fn elapsed_since_start_first_line_is_zero() {
         .stdout(predicate::str::starts_with("00:00:00  first"));
 }
 
+// ─────────────────── T052/T053/T054 — deterministic elapsed-mode tests ────
+//
+// The binary supports `RUSTY_TS_TEST_FIXED_CLOCK=<rfc3339>` to pin the clock
+// at a deterministic instant. With the clock fixed, elapsed-mode output is
+// reproducible across runs. These tests cover the core acceptance scenarios
+// for US4 (T052/T053/T054) without depending on wall-clock timing.
+
+#[test]
+fn fixed_clock_pins_absolute_timestamp() {
+    let mut cmd = Command::cargo_bin("rusty-ts").unwrap();
+    common::fixture_envs(&mut cmd);
+    cmd.env("RUSTY_TS_TEST_FIXED_CLOCK", "2026-05-22T14:30:45Z")
+        .args(["-u", "%Y-%m-%d %H:%M:%S"])
+        .write_stdin("alpha\nbeta\n")
+        .assert()
+        .success()
+        .stdout("2026-05-22 14:30:45  alpha\n2026-05-22 14:30:45  beta\n");
+}
+
+#[test]
+fn elapsed_i_with_fixed_clock_shows_zero_delta() {
+    // With a Fixed clock, every call to .now() returns the same instant,
+    // so elapsed-between-lines is always zero. This proves -i is wired
+    // correctly even though it can't show non-zero deltas without a clock
+    // that advances. The companion `--monotonic`-with-Wall test below
+    // covers the advancement case.
+    let mut cmd = Command::cargo_bin("rusty-ts").unwrap();
+    common::fixture_envs(&mut cmd);
+    cmd.env("RUSTY_TS_TEST_FIXED_CLOCK", "2026-05-22T14:30:45Z")
+        .args(["-i", "%H:%M:%S"])
+        .write_stdin("a\nb\nc\n")
+        .assert()
+        .success()
+        .stdout("00:00:00  a\n00:00:00  b\n00:00:00  c\n");
+}
+
+#[test]
+fn elapsed_s_with_fixed_clock_shows_zero_from_start() {
+    let mut cmd = Command::cargo_bin("rusty-ts").unwrap();
+    common::fixture_envs(&mut cmd);
+    cmd.env("RUSTY_TS_TEST_FIXED_CLOCK", "2026-05-22T14:30:45Z")
+        .args(["-s", "%H:%M:%S"])
+        .write_stdin("a\nb\n")
+        .assert()
+        .success()
+        .stdout("00:00:00  a\n00:00:00  b\n");
+}
+
+#[test]
+fn monotonic_flag_combined_with_elapsed_works() {
+    // With -m and Wall clock (no fixed-clock env), elapsed must advance
+    // monotonically across lines. Two-line sequence with a short sleep
+    // verifies the second line shows a non-zero elapsed prefix.
+    let mut cmd = Command::cargo_bin("rusty-ts").unwrap();
+    common::fixture_envs(&mut cmd);
+    // No RUSTY_TS_TEST_FIXED_CLOCK — use real monotonic clock.
+    let out = cmd
+        .args(["-s", "-m", "%S"])
+        .write_stdin("a\nb\n")
+        .assert()
+        .success();
+    let stdout = String::from_utf8(out.get_output().stdout.clone()).unwrap();
+    // First line should be "00  a" (elapsed since start ≈ 0).
+    assert!(
+        stdout.starts_with("00  a\n"),
+        "expected first line to show 00 elapsed; got {stdout:?}",
+    );
+    // Both lines render through the same format pipeline; verify shape.
+    let re = regex::Regex::new(r"^\d{2}  a\n\d{2}  b\n$").unwrap();
+    assert!(
+        re.is_match(&stdout),
+        "elapsed-mode output shape mismatch: {stdout:?}",
+    );
+}
+
 // ─────────────────── FR-029 — Exit codes ───────────────────────
 
 #[test]

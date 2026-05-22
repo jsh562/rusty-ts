@@ -13,6 +13,29 @@ use std::io;
 /// Errors raised by the `rusty-ts` library API.
 ///
 /// Marked `#[non_exhaustive]` to allow new variants in minor releases.
+///
+/// # Example
+///
+/// ```
+/// use rusty_ts::{Error, TimestamperBuilder};
+///
+/// // Pattern-match on specific variants for actionable handling.
+/// let result = TimestamperBuilder::new()
+///     .utc(true)
+///     .tz_name("Asia/Tokyo")
+///     .build();
+///
+/// match result {
+///     Err(Error::InvalidUtcWithNamedTz { tz }) => {
+///         eprintln!("cannot combine -u with --tz={tz}");
+///     }
+///     Err(Error::InvalidIanaName(name)) => {
+///         eprintln!("unknown IANA timezone: {name}");
+///     }
+///     Err(other) => eprintln!("error: {other}"),
+///     Ok(_) => unreachable!("we configured a conflict"),
+/// }
+/// ```
 #[non_exhaustive]
 #[derive(Debug, thiserror::Error)]
 pub enum Error {

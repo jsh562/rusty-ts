@@ -1,0 +1,130 @@
+# rusty-ts public API surface (v0.1.0)
+#
+# This file is the committed baseline of the crate's public surface. It is
+# asserted by `tests/public_api.rs` to detect unintended changes to the
+# semver contract.
+#
+# Format: one item per line, sorted by path. Comments and blank lines are
+# ignored.
+#
+# Generation note: this baseline is hand-maintained because cargo-public-api
+# could not be installed in the local Windows environment (curl-sys C
+# toolchain issue). When cargo-public-api becomes available in CI, this
+# file can be replaced with its auto-generated output.
+
+# ─────────────── Top-level re-exports (default features) ───────────────
+rusty_ts::CompatibilityMode
+rusty_ts::ElapsedAnchor
+rusty_ts::Error
+rusty_ts::ExplicitChoice
+rusty_ts::Format
+rusty_ts::Timestamper
+rusty_ts::TimestamperBuilder
+rusty_ts::TimezoneSource
+
+# ─────────────── Top-level functions ───────────────
+rusty_ts::run
+
+# ─────────────── Modules ───────────────
+rusty_ts::cli
+rusty_ts::compat_matrix
+rusty_ts::completions
+rusty_ts::error
+rusty_ts::mode
+rusty_ts::pipeline
+rusty_ts::relative
+rusty_ts::time
+rusty_ts::time::clock
+rusty_ts::time::format
+rusty_ts::time::tz
+
+# ─────────────── rusty_ts::cli (cli feature) ───────────────
+rusty_ts::cli::Cli
+rusty_ts::cli::Cli::explicit_compat_choice
+rusty_ts::cli::Cli::validate
+rusty_ts::cli::CliCommand
+rusty_ts::cli::CliCommand::Completions
+
+# ─────────────── rusty_ts::compat_matrix (cli feature) ───────────────
+rusty_ts::compat_matrix::generate_matrix
+
+# ─────────────── rusty_ts::completions (cli feature) ───────────────
+rusty_ts::completions::emit_completions
+
+# ─────────────── rusty_ts::error ───────────────
+rusty_ts::error::Error
+rusty_ts::error::Error::InvalidFormat
+rusty_ts::error::Error::InvalidIanaName
+rusty_ts::error::Error::InvalidUtcWithNamedTz
+rusty_ts::error::Error::Io
+
+# ─────────────── rusty_ts::mode ───────────────
+rusty_ts::mode::CompatibilityMode
+rusty_ts::mode::CompatibilityMode::Default
+rusty_ts::mode::CompatibilityMode::Strict
+rusty_ts::mode::ExplicitChoice
+rusty_ts::mode::ExplicitChoice::Default
+rusty_ts::mode::ExplicitChoice::Strict
+rusty_ts::mode::argv0_basename
+rusty_ts::mode::resolve
+
+# ─────────────── rusty_ts::pipeline ───────────────
+rusty_ts::pipeline::PrefixConfig
+rusty_ts::pipeline::PrefixSource
+rusty_ts::pipeline::PrefixSource::Absolute
+rusty_ts::pipeline::PrefixSource::SincePreviousLine
+rusty_ts::pipeline::PrefixSource::SinceProgramStart
+rusty_ts::pipeline::RelativeConfig
+rusty_ts::pipeline::run_prefix
+rusty_ts::pipeline::run_relative
+
+# ─────────────── rusty_ts::relative ───────────────
+rusty_ts::relative::RelativeRewriter
+rusty_ts::relative::RelativeRewriter::for_mode
+rusty_ts::relative::RelativeRewriter::rewrite
+
+# ─────────────── rusty_ts::time::clock ───────────────
+rusty_ts::time::clock::Clock
+rusty_ts::time::clock::Clock::now
+rusty_ts::time::clock::Fixed
+rusty_ts::time::clock::Fixed::new
+rusty_ts::time::clock::Monotonic
+rusty_ts::time::clock::Monotonic::new
+rusty_ts::time::clock::Wall
+
+# ─────────────── rusty_ts::time::format ───────────────
+rusty_ts::time::format::DEFAULT_FORMAT
+rusty_ts::time::format::DEFAULT_FRACTIONAL_DIGITS
+rusty_ts::time::format::format_default
+rusty_ts::time::format::format_with
+
+# ─────────────── rusty_ts::time::tz ───────────────
+rusty_ts::time::tz::TimezoneSource
+rusty_ts::time::tz::TimezoneSource::Local
+rusty_ts::time::tz::TimezoneSource::Named
+rusty_ts::time::tz::TimezoneSource::Utc
+rusty_ts::time::tz::TimezoneSource::local
+rusty_ts::time::tz::TimezoneSource::named
+rusty_ts::time::tz::TimezoneSource::render
+rusty_ts::time::tz::TimezoneSource::utc
+
+# ─────────────── Library API top-level types ───────────────
+rusty_ts::Format::Default
+rusty_ts::Format::Strftime
+rusty_ts::ElapsedAnchor::Absolute
+rusty_ts::ElapsedAnchor::SincePreviousLine
+rusty_ts::ElapsedAnchor::SinceProgramStart
+rusty_ts::TimestamperBuilder::compat
+rusty_ts::TimestamperBuilder::elapsed
+rusty_ts::TimestamperBuilder::format
+rusty_ts::TimestamperBuilder::new
+rusty_ts::TimestamperBuilder::timezone
+rusty_ts::TimestamperBuilder::tz_name
+rusty_ts::TimestamperBuilder::utc
+rusty_ts::TimestamperBuilder::build
+rusty_ts::Timestamper::compat
+rusty_ts::Timestamper::elapsed_anchor
+rusty_ts::Timestamper::format_spec
+rusty_ts::Timestamper::prefix_lines
+rusty_ts::Timestamper::prefix_string_lines
+rusty_ts::Timestamper::timezone

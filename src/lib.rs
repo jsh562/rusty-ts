@@ -64,6 +64,25 @@ use crate::time::format;
 /// Strftime format selector for `TimestamperBuilder`. `#[non_exhaustive]` so
 /// future variants (e.g., a precompiled format) can be added in minor
 /// releases without breaking semver.
+///
+/// # Example
+///
+/// ```
+/// use rusty_ts::{Format, TimestamperBuilder};
+///
+/// // Use the moreutils default format.
+/// let ts = TimestamperBuilder::new()
+///     .format(Format::Default)
+///     .build()
+///     .unwrap();
+///
+/// // Use a custom strftime spec, including moreutils fractional extensions.
+/// let ts = TimestamperBuilder::new()
+///     .format(Format::Strftime("%Y-%m-%d %H:%M:%.S".into()))
+///     .build()
+///     .unwrap();
+/// # let _ = ts;
+/// ```
 #[non_exhaustive]
 #[derive(Debug, Default, Clone)]
 pub enum Format {
@@ -77,6 +96,19 @@ pub enum Format {
 
 /// Elapsed-time anchor selector. `Absolute` is the default; the other
 /// variants correspond to the CLI `-i` / `-s` flags.
+///
+/// # Example
+///
+/// ```
+/// use rusty_ts::{ElapsedAnchor, TimestamperBuilder};
+///
+/// // Render elapsed time since program start (matches CLI `-s`).
+/// let ts = TimestamperBuilder::new()
+///     .elapsed(ElapsedAnchor::SinceProgramStart)
+///     .build()
+///     .unwrap();
+/// # let _ = ts;
+/// ```
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ElapsedAnchor {
@@ -92,8 +124,30 @@ pub enum ElapsedAnchor {
 /// Builder for [`Timestamper`]. Every chain method is `#[must_use]` so silent
 /// misuse is caught at compile time. `build()` performs post-configuration
 /// validation and returns the same typed errors the CLI's post-parse
-/// validation produces (e.g., `Error::InvalidUtcWithNamedTz` for FR-020
+/// validation produces (e.g., [`Error::InvalidUtcWithNamedTz`] for FR-020
 /// mirrored at the library layer).
+///
+/// # Example
+///
+/// ```
+/// use rusty_ts::{TimestamperBuilder, Format, TimezoneSource};
+///
+/// // Configure via the structured `utc()` / `tz_name()` methods that mirror
+/// // the CLI `-u` and `--tz=<IANA>` flags.
+/// let ts = TimestamperBuilder::new()
+///     .format(Format::Strftime("%Y-%m-%d %H:%M:%S".into()))
+///     .utc(true)
+///     .build()
+///     .expect("valid configuration");
+/// # let _ = ts;
+///
+/// // Conflicting configuration is caught at build() per FR-020.
+/// let result = TimestamperBuilder::new()
+///     .utc(true)
+///     .tz_name("Asia/Tokyo")
+///     .build();
+/// assert!(result.is_err());
+/// ```
 #[derive(Debug, Clone, Default)]
 pub struct TimestamperBuilder {
     format: Format,
@@ -204,6 +258,26 @@ impl TimestamperBuilder {
 
 /// Configured line-timestamping engine. Cheap to construct (no IO until
 /// `prefix_lines` is called). Marked `#[non_exhaustive]` for future evolution.
+///
+/// # Example
+///
+/// ```
+/// use rusty_ts::{TimestamperBuilder, Format, TimezoneSource};
+/// use std::io::Cursor;
+///
+/// let ts = TimestamperBuilder::new()
+///     .format(Format::Strftime("[%H:%M:%S]".into()))
+///     .utc(true)
+///     .build()
+///     .unwrap();
+///
+/// let input = Cursor::new(b"hello\n".to_vec());
+/// let chunks: Vec<Vec<u8>> = ts
+///     .prefix_lines(input)
+///     .collect::<Result<_, _>>()
+///     .unwrap();
+/// assert!(chunks[0].ends_with(b"  hello\n"));
+/// ```
 #[non_exhaustive]
 #[derive(Debug, Clone)]
 pub struct Timestamper {
@@ -352,6 +426,33 @@ fn elapsed_string(spec: &str, elapsed: std::time::Duration) -> String {
 
 // ───────────────────────── CLI Entry Point ─────────────────────────────────
 
+/// Resolve the runtime clock source. Selection precedence:
+///
+/// 1. `RUSTY_TS_TEST_FIXED_CLOCK=<rfc3339>` env var — test-only deterministic
+///    clock for integration tests. Pins the clock to the parsed instant.
+///    Used by `tests/cli_errors.rs` elapsed-mode tests (T052/T053/T054).
+/// 2. `-m` / `--monotonic` flag → `Monotonic` clock.
+/// 3. Default → `Wall` clock.
+///
+/// Gated behind `cli` because `Wall` / `Monotonic` / `Fixed` constructors
+/// are in `time::clock` which is unconditionally compiled; the env var
+/// reading lives only in the binary entry path.
+#[cfg(feature = "cli")]
+fn resolve_clock(monotonic: bool) -> Box<dyn Clock> {
+    if let Ok(fixed_str) = std::env::var("RUSTY_TS_TEST_FIXED_CLOCK") {
+        if let Ok(parsed) = chrono::DateTime::parse_from_rfc3339(&fixed_str) {
+            return Box::new(time::clock::Fixed::new(parsed.with_timezone(&chrono::Utc)));
+        }
+        // Malformed env var: fall through to default clock rather than
+        // failing — keeps the env var fully opt-in/test-only.
+    }
+    if monotonic {
+        Box::new(time::clock::Monotonic::new())
+    } else {
+        Box::new(time::clock::Wall)
+    }
+}
+
 /// Binary entry point shared by `src/main.rs` and `src/bin/ts.rs`.
 ///
 /// Resolves [`CompatibilityMode`] once at startup from CLI flag → env var →
@@ -445,16 +546,19 @@ pub fn run() -> std::process::ExitCode {
     let stdin_locked = stdin.lock();
     let mut stdout_locked = stdout.lock();
 
+    // Resolve the clock source: -m switches to monotonic, otherwise wall.
+    // Test-only `RUSTY_TS_TEST_FIXED_CLOCK=<rfc3339>` env var pins the clock
+    // to a deterministic instant for integration tests (HINT-003).
+    let clock: Box<dyn Clock> = resolve_clock(cli.monotonic);
+
     let result: std::io::Result<()> = if cli.relative {
         let rewriter = relative::RelativeRewriter::for_mode(compat);
-        let clock = Wall;
         let cfg = pipeline::RelativeConfig {
             rewriter: &rewriter,
             reference: clock.now(),
         };
         pipeline::run_relative(stdin_locked, &mut stdout_locked, &cfg)
     } else {
-        let clock = Wall;
         let source = if cli.incremental {
             PrefixSource::SincePreviousLine
         } else if cli.since_start {
@@ -465,7 +569,7 @@ pub fn run() -> std::process::ExitCode {
         let cfg = PrefixConfig {
             format: &format_spec,
             tz: &tz,
-            clock: &clock,
+            clock: clock.as_ref(),
             source,
         };
         pipeline::run_prefix(stdin_locked, &mut stdout_locked, &cfg)

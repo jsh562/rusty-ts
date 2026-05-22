@@ -20,6 +20,25 @@
 ///
 /// Marked `#[non_exhaustive]` so future modes (e.g., explicit moreutils
 /// version pinning) can be added in minor versions.
+///
+/// # Example
+///
+/// ```
+/// use rusty_ts::{CompatibilityMode, TimestamperBuilder};
+///
+/// // Default mode — Rusty extensions active.
+/// let ts = TimestamperBuilder::new()
+///     .compat(CompatibilityMode::Default)
+///     .build()
+///     .unwrap();
+///
+/// // Strict mode — byte-identical moreutils behavior.
+/// let ts = TimestamperBuilder::new()
+///     .compat(CompatibilityMode::Strict)
+///     .build()
+///     .unwrap();
+/// # let _ = ts;
+/// ```
 #[non_exhaustive]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CompatibilityMode {

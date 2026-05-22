@@ -15,6 +15,21 @@ use chrono_tz::Tz;
 /// Resolved timezone source. Built once at startup; used for every per-line
 /// render. `#[non_exhaustive]` so a future variant (e.g., explicit FixedOffset)
 /// can be added in minor releases.
+///
+/// # Example
+///
+/// ```
+/// use rusty_ts::TimezoneSource;
+///
+/// // Three ways to construct a timezone source:
+/// let local = TimezoneSource::Local;
+/// let utc = TimezoneSource::Utc;
+/// let tokyo = TimezoneSource::named("Asia/Tokyo").expect("valid IANA");
+///
+/// // Unknown IANA names return Error::InvalidIanaName.
+/// assert!(TimezoneSource::named("Atlantis/Atlantica").is_err());
+/// # let _ = (local, utc, tokyo);
+/// ```
 #[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum TimezoneSource {
