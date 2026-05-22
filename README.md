@@ -2,7 +2,7 @@
 
 A Rust port of the moreutils `ts` utility: prefix each line of stdin with a timestamp. Static binaries on Linux, macOS, and Windows; works with or without a Rust toolchain via `cargo install` or `cargo binstall`. Default mode adds a few niceties moreutils doesn't have (`-u`/`--utc`, `--tz=<IANA>`, env-var defaults, shell completions); Strict mode reverts every observable surface to byte-identical moreutils behavior for drop-in migration.
 
-Part of the [Rusty portfolio](https://github.com/REPLACE_OWNER/rusty) — a collection of small Rust ports of utilities missing from the Rust ecosystem.
+Part of the [Rusty portfolio](https://github.com/jsh562/rusty) — a collection of small Rust ports of utilities missing from the Rust ecosystem.
 
 ## Install
 
@@ -26,7 +26,7 @@ cargo binstall rusty-ts
 
 ### Direct download
 
-Per-target archives are attached to each [GitHub Release](https://github.com/REPLACE_OWNER/rusty-ts/releases). Linux x86_64/aarch64, macOS x86_64/aarch64, Windows x86_64. Each archive contains the binary plus pre-generated shell-completion scripts for bash, zsh, fish, and PowerShell.
+Per-target archives are attached to each [GitHub Release](https://github.com/jsh562/rusty-ts/releases). Linux x86_64/aarch64, macOS x86_64/aarch64, Windows x86_64. Each archive contains the binary plus pre-generated shell-completion scripts for bash, zsh, fish, and PowerShell.
 
 ## Usage
 
@@ -106,11 +106,25 @@ To use the library without pulling in the CLI dependencies:
 rusty-ts = { version = "0.1", default-features = false }
 ```
 
+## Relationship to moreutils
+
+`rusty-ts` is a **clean-room Rust reimplementation** of the moreutils `ts` utility. It contains **no source code from moreutils** — only a from-scratch Rust implementation that observes the documented behavior of moreutils `ts` and reproduces it.
+
+The moreutils `ts` Perl script is © 2006 Joey Hess and licensed under the GNU GPL. That license governs the *Perl source code*. Behavioral interfaces (flag set, output format) are not copyrightable, so a clean-room reimplementation under a different license is well-established practice — the same posture as [`uutils/coreutils`](https://github.com/uutils/coreutils) (MIT-licensed reimplementation of GPL-licensed GNU coreutils).
+
+`rusty-ts` does **not** distribute or derive from the moreutils source code. Snapshot tests in this repository compare `rusty-ts` *runtime output* against captured *moreutils ts runtime output* (captured by running moreutils against fixtures and recording bytes) — that is not source-code derivation either. The captured output bytes are facts, not creative expression.
+
+If you want the original moreutils `ts`, install it via your platform's package manager (`apt install moreutils`, `brew install moreutils`, etc.) — that is unaffected by this port's existence.
+
 ## License
 
 Licensed under either of
 
 - Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
-- MIT License ([LICENSE-MIT](LICENSE-MIT))
+- MIT License ([LICENSE](LICENSE))
 
 at your option.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.

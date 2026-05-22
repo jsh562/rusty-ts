@@ -1,6 +1,6 @@
 # rusty-ts — Design Overview
 
-This is the inaugural port in the [Rusty portfolio](https://github.com/REPLACE_OWNER/rusty). The canonical spec, plan, research, and task list live in the umbrella repo under `specs/00001-inaugural-port-ts/`.
+This is the inaugural port in the [Rusty portfolio](https://github.com/jsh562/rusty). The canonical spec, plan, research, and task list live in the umbrella repo under `specs/00001-inaugural-port-ts/`.
 
 - [`spec.md`](../../rusty/specs/00001-inaugural-port-ts/spec.md) — product spec, 10 user stories, 30 functional requirements, 23 success criteria
 - [`plan.md`](../../rusty/specs/00001-inaugural-port-ts/plan.md) — implementation plan, architecture decisions, Performance Budget, Testing Strategy
@@ -20,7 +20,7 @@ When E003 v1.0.0 ships:
    ```yaml
    jobs:
      port-ci:
-       uses: REPLACE_OWNER/rusty/.github/workflows/port-ci.yml@v1.0.0
+       uses: jsh562/rusty/.github/workflows/port-ci.yml@v1.0.0
        secrets: inherit
    ```
 3. Any per-port-specific overrides (e.g., extra release assets like completion files) pass through as `workflow_call` inputs.
@@ -34,8 +34,8 @@ When E004 v1.0.0 ships:
 
 **T002 decision: deferred to maintainer.** This local working tree is a fresh directory; the GitHub repository named `rusty-ts` has not been created yet. Before any external publish:
 
-1. Create an empty GitHub repository at `https://github.com/REPLACE_OWNER/rusty-ts`.
-2. Update the `repository`, `homepage`, and `documentation` URLs in `Cargo.toml` (currently set to `REPLACE_OWNER`).
+1. Create an empty GitHub repository at `https://github.com/jsh562/rusty-ts`.
+2. Update the `repository`, `homepage`, and `documentation` URLs in `Cargo.toml` (currently set to `jsh562`).
 3. Update the umbrella references in this file (`docs/DESIGN.md`) and in `README.md`.
 4. From this directory: `git init && git add . && git commit -m "initial scaffold" && git branch -M main && git remote add origin <repo-url> && git push -u origin main`.
 5. Enable branch protection on `main`: require PRs, require status checks (`fmt`, `clippy`, `audit`, `msrv`, `test`, `library-no-default-features`, `publish-dry-run`).
