@@ -26,9 +26,34 @@ jobs:
             exit 1
           fi
 
+  generate-completions:
+    name: generate shell completions
+    needs: verify-tag-matches-cargo-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Generate completions via host build
+        run: |
+          mkdir -p dist/completions
+          # Run via `cargo run` on the host toolchain so this works regardless
+          # of any target the build-binaries matrix later cross-compiles for.
+          # The completion scripts are derived from the CLI definition and are
+          # identical regardless of build target — generate once, ship to all.
+          cargo run --release --features cli --bin rusty-ts -- completions bash       > dist/completions/rusty-ts.bash
+          cargo run --release --features cli --bin rusty-ts -- completions zsh        > dist/completions/_rusty-ts
+          cargo run --release --features cli --bin rusty-ts -- completions fish       > dist/completions/rusty-ts.fish
+          cargo run --release --features cli --bin rusty-ts -- completions powershell > dist/completions/rusty-ts.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: completions
+          path: dist/completions/
+          retention-days: 1
+
   build-binaries:
     name: build ${{ matrix.target }}
-    needs: verify-tag-matches-cargo-version
+    needs: [verify-tag-matches-cargo-version, generate-completions]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -55,18 +80,11 @@ jobs:
           else
             cargo build --release --target ${{ matrix.target }} --features ts-alias
           fi
-      - name: Generate completions
-        shell: bash
-        run: |
-          mkdir -p dist/completions
-          BIN="target/${{ matrix.target }}/release/rusty-ts"
-          if [ "${{ matrix.target }}" = "x86_64-pc-windows-msvc" ]; then
-            BIN="$BIN.exe"
-          fi
-          "$BIN" completions bash       > dist/completions/rusty-ts.bash
-          "$BIN" completions zsh        > dist/completions/_rusty-ts
-          "$BIN" completions fish       > dist/completions/rusty-ts.fish
-          "$BIN" completions powershell > dist/completions/rusty-ts.ps1
+      - name: Download completions
+        uses: actions/download-artifact@v4
+        with:
+          name: completions
+          path: dist/completions/
       - name: Package archive
         shell: bash
         run: |
