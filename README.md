@@ -4,6 +4,10 @@ A Rust port of the moreutils `ts` utility: prefix each line of stdin with a time
 
 Part of the [Rusty portfolio](https://jsh562.github.io/rusty-portfolio) — a collection of small Rust ports of utilities missing from the Rust ecosystem.
 
+[![crates.io](https://img.shields.io/crates/v/rusty-ts.svg)](https://crates.io/crates/rusty-ts)
+[![docs.rs](https://docs.rs/rusty-ts/badge.svg)](https://docs.rs/rusty-ts)
+[![license: MIT OR Apache-2.0](https://img.shields.io/crates/l/rusty-ts.svg)](#license)
+
 ## Install
 
 ### With a Rust toolchain
