@@ -76,13 +76,13 @@ jobs:
             cp target/${{ matrix.target }}/release/rusty-ts.exe "$ARCHIVE/"
             cp target/${{ matrix.target }}/release/ts.exe "$ARCHIVE/" 2>/dev/null || true
             cp -r dist/completions "$ARCHIVE/"
-            cp README.md LICENSE-MIT LICENSE-APACHE "$ARCHIVE/"
+            cp README.md LICENSE LICENSE-APACHE "$ARCHIVE/"
             7z a "$ARCHIVE.zip" "$ARCHIVE"
           else
             cp target/${{ matrix.target }}/release/rusty-ts "$ARCHIVE/"
             cp target/${{ matrix.target }}/release/ts "$ARCHIVE/" 2>/dev/null || true
             cp -r dist/completions "$ARCHIVE/"
-            cp README.md LICENSE-MIT LICENSE-APACHE "$ARCHIVE/"
+            cp README.md LICENSE LICENSE-APACHE "$ARCHIVE/"
             tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
           fi
       - name: Upload artifact
