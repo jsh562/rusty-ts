@@ -2,7 +2,7 @@
 
 A Rust port of the moreutils `ts` utility: prefix each line of stdin with a timestamp. Static binaries on Linux, macOS, and Windows; works with or without a Rust toolchain via `cargo install` or `cargo binstall`. Default mode adds a few niceties moreutils doesn't have (`-u`/`--utc`, `--tz=<IANA>`, env-var defaults, shell completions); Strict mode reverts every observable surface to byte-identical moreutils behavior for drop-in migration.
 
-Part of the [Rusty portfolio](https://github.com/jsh562/rusty) — a collection of small Rust ports of utilities missing from the Rust ecosystem.
+Part of the [Rusty portfolio](https://jsh562.github.io/rusty-portfolio) — a collection of small Rust ports of utilities missing from the Rust ecosystem.
 
 ## Install
 
