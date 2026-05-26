@@ -1,0 +1,13 @@
+# Shellcheck configuration for feature-lint scripts.
+# Format: one directive per line; lines starting with '#' are comments.
+# These directives apply to lint.sh and run.sh.
+
+# SC2155: declare and assign separately to avoid masking return values.
+# We deliberately permit grouped declare+assign in helper functions; disable.
+disable=SC2155
+
+# SC1091: don't follow sourced files (run.sh sources lint.sh by path).
+disable=SC1091
+
+# Enforce shell dialect:
+shell=bash

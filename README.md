@@ -107,8 +107,58 @@ To use the library without pulling in the CLI dependencies:
 
 ```toml
 [dependencies]
-rusty-ts = { version = "0.1", default-features = false }
+rusty-ts = { version = "0.2", default-features = false }
 ```
+
+## Cargo Features
+
+`default` enables `full`, which (for this single-capability port) resolves to the `cli` umbrella. `ts-classic` reproduces v0.1.x bare-port behavior matching upstream moreutils `ts` 1:1. To strip the CLI surface use `default-features = false` or `--no-default-features` and then add the features you want.
+
+rusty-ts is a **single-capability port** per spec 00011 §Scope Edge Cases — its sole documented capability is "prefix each line of stdin with a timestamp". Following the portfolio-wide convention's minimum-port rule, zero leaves are carved beyond the required umbrellas. See [`docs/feature-layout.md`](docs/feature-layout.md) for the per-capability rejection rationale.
+
+### Feature matrix
+
+| Feature | Description | Umbrella(s) |
+|---|---|---|
+| `cli` | All CLI-only dependencies (`clap`, `clap_complete`, `anyhow`) and the binary entry point. Library consumers strip this via `default-features = false`. | `full`, `ts-classic`, `ts-minimal`, `ts-alias` |
+| `ts-alias` | Installs an additional `ts` binary alongside `rusty-ts`. Both share the same source; argv[0] auto-detect routes `ts` invocations into Strict mode (FR-023). | (standalone — implies `cli`) |
+| `bench` | Pulls `criterion` and enables `benches/throughput.rs`. Dev-tooling only; outside the convention's leaf surface. Name preserved verbatim from v0.1.x. | (standalone) |
+
+### Preset bundles
+
+| Bundle | Composition | Use case |
+|---|---|---|
+| `ts-classic` | `cli` | Drop-in upstream moreutils `ts` replacement. Strict mode is invoked via `--strict`, the `RUSTY_TS_STRICT` env var, or `ts-alias` argv[0] auto-detect — no extra feature flag is required. |
+| `ts-minimal` | `cli` | Explicit minimal-CLI alias for users who prefer the `<port>-minimal` naming convention seen across other portfolio ports (figlet-minimal, pwgen-minimal). Identical composition to `ts-classic`. |
+
+### Keep-list workaround (Cargo features are union-only)
+
+Cargo features cannot subtract from `default`. To get "everything except a specific feature," disable defaults and enumerate the features you want:
+
+```sh
+cargo install rusty-ts --no-default-features --features "cli"
+# → bare CLI with no ts-alias binary, no bench tooling. Equivalent to
+#   ts-classic / ts-minimal.
+
+cargo install rusty-ts --no-default-features --features "cli ts-alias"
+# → CLI + the ts alias binary; library consumers still get a clean strip
+#   via `default-features = false`.
+```
+
+For the common cases the named [preset bundles](#preset-bundles) above are usually sufficient.
+
+### Library-only consumers
+
+```toml
+[dependencies]
+rusty-ts = { version = "0.2", default-features = false }
+```
+
+This strips `clap`, `clap_complete`, and `anyhow`. The resulting build pulls only `chrono`, `chrono-tz`, `regex`, and `thiserror`. The CI `test-no-default` job runs `cargo tree --no-default-features` on every PR and fails the build if any CLI-only dep leaks back in.
+
+### Convention authority
+
+This layout follows the portfolio-wide Cargo Features Convention. The "why" lives in [ADR-0006](https://github.com/jsh562/rustylib/blob/main/specs/adrs/0006-cargo-features-convention-for-portfolio-ports.md) (option analysis and rationale); the "what" lives in [`project-instructions.md` §Cargo Feature Surface](https://github.com/jsh562/rustylib/blob/main/project-instructions.md) (canonical rules per port). Every Rusty port from v0.2 onward exposes the same umbrella set (`default` / `full` / `cli` / `<port>-classic`), per-port leaves named in kebab-case, and 2 to 4 preset bundles. Single-capability ports like rusty-ts adopt the minimum convention (zero leaves; `<port>-classic` and `<port>-minimal` as the two required preset bundles per FR-007).
 
 ## Relationship to moreutils
 

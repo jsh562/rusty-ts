@@ -1,6 +1,6 @@
 [package]
 name = "rusty-ts"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.85"
 authors = ["James Han <jsh562@users.noreply.github.com>"]
@@ -13,18 +13,69 @@ readme = "README.md"
 keywords = ["ts", "moreutils", "timestamp", "log", "cli"]
 categories = ["command-line-utilities", "date-and-time"]
 
+# -----------------------------------------------------------------------------
+# [features] — v0.2.0 portfolio-wide Cargo Features Convention layout.
+#
+# Convention authority:
+#   * specs/adrs/0006-cargo-features-convention-for-portfolio-ports.md (why)
+#   * project-instructions.md §Cargo Feature Surface (what)
+#
+# rusty-ts is a single-capability port per spec 00011 §Scope Edge Cases:
+# the documented capability is "prefix each line of stdin with a
+# timestamp". Per the minimum-convention rule, ZERO leaves are carved
+# beyond the required umbrellas. See docs/feature-layout.md for the
+# explicit carving rationale.
+#
+# Required umbrellas (FR-001..FR-004):
+#   default      — alias for `full`; kitchen-sink for casual `cargo install`
+#   full         — every leaf (degenerates to `cli` in this single-cap port)
+#   cli          — CLI-only deps + modules (library consumers strip)
+#   ts-classic   — bare port, drop-in match for upstream moreutils `ts`
+#
+# Required preset bundles (FR-007 — 2 per port even for single-cap):
+#   ts-classic   — moreutils ts drop-in replacement (aliased above)
+#   ts-minimal   — explicit minimal-CLI alias (same composition)
+#
+# Retained v0.1.x features (additive — names preserved verbatim):
+#   ts-alias     — adds a second `ts` binary entry alongside `rusty-ts`
+#   bench        — criterion benches (dev-tooling, outside convention scope)
+#
+# No leaf features carved — see docs/feature-layout.md §Leaves intentionally
+# NOT carved for the explicit per-capability rejection rationale.
+# -----------------------------------------------------------------------------
+
 [features]
-default = ["cli"]
-# `cli` gates the CLI-only dependencies (clap, clap_complete, anyhow) so library
-# consumers can depend on rusty-ts with `default-features = false` without
-# pulling in the binary's argument-parsing surface.
+default = ["full"]
+
+# Umbrella: every leaf enabled. Kitchen sink for `cargo install` casual users.
+# In rusty-ts (single-capability port) `full` resolves to `cli` alone.
+full = ["cli"]
+
+# Umbrella: all CLI-only deps + modules. Library consumers strip this via
+# `default-features = false`.
 cli = ["dep:clap", "dep:clap_complete", "dep:anyhow"]
-# `ts-alias` adds a second binary entry named `ts` alongside `rusty-ts`. Both
-# binaries share the same source — they differ only in installed name. argv[0]
-# auto-detect (FR-023) routes `ts` invocations into Strict mode automatically.
+
+# Umbrella: bare port, drop-in match for upstream moreutils `ts`. Pulls the
+# CLI surface; the bare moreutils `ts` set is reproduced via `--strict`,
+# `RUSTY_TS_STRICT` env var, or `ts-alias` argv[0] auto-detect (no extra
+# feature flag required).
+ts-classic = ["cli"]
+
+# Preset bundle: explicit minimal-CLI alias. Same composition as ts-classic
+# (single-capability port has no smaller subset to carve). Provided as a
+# semantic alias mirroring the `<port>-minimal` naming convention used by
+# other portfolio ports (figlet-minimal, pwgen-minimal).
+ts-minimal = ["cli"]
+
+# v0.1.x feature retained verbatim per the v0.2.0 SemVer additive contract.
+# `ts-alias` adds a second binary entry named `ts` alongside `rusty-ts`.
+# Both binaries share the same source; argv[0] auto-detect (FR-023) routes
+# `ts` invocations into Strict mode automatically. NOT a convention preset
+# bundle — it is an installation-time convenience knob.
 ts-alias = ["cli"]
-# `bench` enables criterion benches in `benches/`. Off by default to keep
-# `cargo install` minimal.
+
+# Dev-tooling feature (criterion benches in `benches/`). Outside the
+# convention's purview; name preserved verbatim from v0.1.x.
 bench = ["dep:criterion"]
 
 [dependencies]
