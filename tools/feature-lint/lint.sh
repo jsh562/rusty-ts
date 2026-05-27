@@ -180,6 +180,7 @@ is_dev_tooling_feature() {
     case "$feat" in
         bench|benchmark|bench-internal|internal-bench) return 0 ;;
         test-util|test-utils|test-helpers|test-helper) return 0 ;;
+        dev-helpers|dev-helper|dev-utils|dev-util) return 0 ;;
         internal|unstable|nightly) return 0 ;;
         *) return 1 ;;
     esac

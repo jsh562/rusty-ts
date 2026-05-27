@@ -10,7 +10,7 @@ backfill (spec 00011, Phase 3 — rusty-ts).
   + HINT-009 of spec 00011.
 
 **Reference port**: rusty-figlet v0.2.0 (commit b493d57) — see
-`c:\claudecode\rusty-figlet\docs\feature-layout.md` for the FROZEN format
+`rusty-figlet/docs/feature-layout.md` (FROZEN reference port) for the format
 anchor. rusty-ts conforms to the same shape with the minimum-convention
 surface dictated by its single-capability scope.
 
