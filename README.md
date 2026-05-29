@@ -69,7 +69,7 @@ rusty-ts completions powershell
 
 ## Library API
 
-The crate exposes a byte-typed streaming surface. Non-UTF-8 input bytes round-trip unchanged per FR-011. Use it inside a long-running daemon when you'd rather not shell out to a binary.
+The crate exposes a byte-typed streaming surface. Non-UTF-8 input bytes round-trip unchanged. Use it inside a long-running daemon when you'd rather not shell out to a binary.
 
 ```rust,no_run
 use rusty_ts::{TimestamperBuilder, Format, CompatibilityMode, TimezoneSource};
@@ -95,14 +95,14 @@ For library-only consumers without CLI deps see the [Cargo Features](#cargo-feat
 
 `default` enables `full`, which (for this single-capability port) resolves to the `cli` umbrella. `ts-classic` reproduces v0.1.x bare-port behavior matching upstream moreutils `ts` 1:1. To strip the CLI surface use `default-features = false` or `--no-default-features` & then add what you want.
 
-rusty-ts is a **single-capability port** per spec 00011 §Scope Edge Cases. Its sole documented capability is "prefix each line of stdin with a timestamp". Zero leaves are carved beyond the required umbrellas. See [`docs/feature-layout.md`](docs/feature-layout.md) for the per-capability rejection rationale.
+rusty-ts is a **single-capability port**: its one documented job is "prefix each line of stdin with a timestamp". No optional feature leaves are carved beyond the required umbrellas; see [`docs/feature-layout.md`](docs/feature-layout.md) for why.
 
 ### Feature matrix
 
 | Feature | Description | Umbrella(s) |
 |---|---|---|
 | `cli` | All CLI-only dependencies (`clap`, `clap_complete`, `anyhow`) and the binary entry point. Library consumers strip via `default-features = false`. | `full`, `ts-classic`, `ts-minimal`, `ts-alias` |
-| `ts-alias` | Installs an additional `ts` binary alongside `rusty-ts`. Both share source; argv[0] auto-detect routes `ts` invocations into Strict mode (FR-023). | (standalone, implies `cli`) |
+| `ts-alias` | Installs an additional `ts` binary alongside `rusty-ts`. Both share source; argv[0] auto-detect routes `ts` invocations into Strict mode. | (standalone, implies `cli`) |
 | `bench` | Pulls `criterion` and enables `benches/throughput.rs`. Dev-tooling only; outside the convention's leaf surface. Name preserved verbatim from v0.1.x. | (standalone) |
 
 ### Preset bundles
@@ -146,8 +146,6 @@ This layout follows the portfolio-wide Cargo Features Convention. The "why" live
 
 - **Default mode.** clap-styled flag parser. UTF-8 input. `-u`/`--utc`, `--tz=<IANA>`, `RUSTY_TS_FORMAT` env-var default, & the `completions` subcommand are all available. `-r` recognizes ISO-8601, RFC-3339, & Unix epoch (integer + fractional).
 - **Strict mode** (activated by `--strict`, `RUSTY_TS_STRICT=1`, or invoking the binary as `ts`). Byte-equal stdout, stderr, exit codes, & `--help`/`--version` layouts against moreutils `ts` at the pinned upstream commit recorded in [`fixtures/README.md`](fixtures/README.md). `-u`, `--tz`, & `completions` MUST be rejected. `RUSTY_TS_FORMAT` MUST be ignored. `-r` expands to the full moreutils recognized-timestamp set.
-
-Snapshot fixtures pin `TZ=UTC` & `LC_ALL=C.UTF-8` so byte-level fidelity is reproducible across hosts.
 
 Byte-level fidelity is verified by snapshot tests against captured moreutils-`ts` output under a pinned environment: `TZ=UTC` and `LC_ALL=C.UTF-8`.
 

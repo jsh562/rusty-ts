@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-05-28
+
+### Changed (docs only — no code or API changes)
+
+- **README clarity polish.** Lead the intro with a usage scenario, remove internal spec-artifact IDs that pointed at the private planning repo, and collapse a duplicated byte-fidelity sentence. No code, API, or feature-surface changes.
+
 ## [0.2.0] - 2026-05-25
 
 ### Added (additive only — no v0.1.x behavior changed)
